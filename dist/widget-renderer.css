@@ -1,0 +1,479 @@
+/* ============================================================
+   WIDGET RENDERER CSS — shared between the published site and
+   the Builder (editor + preview). Loaded by shell() and
+   builderPage so preview == published behavior.
+   ============================================================ */
+
+/* Single source of truth for per-element device visibility.
+   The renderer emits .rava-vis wrappers; these rules decide
+   where an element appears. The editor toggles .is-device-hidden
+   locally for its ghost state.
+
+   BREAKPOINT TOKENS (single source - do not drift):
+     mobile  = container ravapage width <= 720px
+     desktop = container ravapage width >= 721px  (stats grid drops at 480px)
+   All visibility rules are @container based, so the published page
+   and the builder canvas at ANY width behave identically regardless
+   of the browser window size. */
+@container ravapage (max-width: 720px) {
+  .rava-vis.rava-hide-mobile { display: none !important; }
+  .sticky-hide-mobile { display: none !important; }
+}
+@container ravapage (min-width: 721px) {
+  .rava-vis.rava-hide-desktop { display: none !important; }
+}
+/* V133 — بریک‌پوینت تبلت (۷۲۱ تا ۱۰۲۴) برای هدر/فوتر و همهٔ عناصر */
+@container ravapage (min-width: 721px) and (max-width: 1024px) {
+  .rava-vis.rava-hide-tablet { display: none !important; }
+}
+/* V143 — opt-in responsive override. The default path has no .rava-rsp class,
+   so existing pages retain their current behavior. */
+.rava-rsp{max-width:var(--rva-rw-d,100%)}
+@container ravapage (min-width: 1025px){
+  .rava-rsp{max-width:var(--rva-rw-d,100%);font-size:var(--rva-rfs-d,inherit);padding-top:var(--rva-rpy-d,0px);padding-bottom:var(--rva-rpy-d,0px);padding-left:var(--rva-rpx-d,0px);padding-right:var(--rva-rpx-d,0px);text-align:var(--rva-ra-d,inherit)}
+}
+@container ravapage (min-width: 721px) and (max-width: 1024px){
+  .rava-rsp{max-width:var(--rva-rw-t,var(--rva-rw-d,100%));font-size:var(--rva-rfs-t,var(--rva-rfs-d,inherit));padding-top:var(--rva-rpy-t,var(--rva-rpy-d,0px));padding-bottom:var(--rva-rpy-t,var(--rva-rpy-d,0px));padding-left:var(--rva-rpx-t,var(--rva-rpx-d,0px));padding-right:var(--rva-rpx-t,var(--rva-rpx-d,0px));text-align:var(--rva-ra-t,var(--rva-ra-d,inherit))}
+}
+@container ravapage (max-width: 720px){
+  .rava-rsp{max-width:var(--rva-rw-m,var(--rva-rw-d,100%));font-size:var(--rva-rfs-m,var(--rva-rfs-d,inherit));padding-top:var(--rva-rpy-m,var(--rva-rpy-d,0px));padding-bottom:var(--rva-rpy-m,var(--rva-rpy-d,0px));padding-left:var(--rva-rpx-m,var(--rva-rpx-d,0px));padding-right:var(--rva-rpx-m,var(--rva-rpx-d,0px));text-align:var(--rva-ra-m,var(--rva-ra-d,inherit))}
+}
+
+/* Container-based widget stacking (independent of window size).
+   Page bodies already declare container-type:inline-size as
+   `ravapage`; the editor canvas declares it as `ravapage` too,
+   so the same queries fire on the real page and inside the
+   builder frame at any canvas width. */
+@container ravapage (max-width: 720px) {
+  /* V131 — ستون‌هایی که «کنار هم در موبایل (فشرده)» دارند (rc-side) مستثنا هستند؛
+     بقیه در موبایل زیر هم می‌افتند. قبلاً !importantِ این قانون تیکِ کنار-هم را
+     روی سایت منتشرشده بی‌اثر می‌کرد (در بیلدر مستثنا بود، اینجا نه). */
+  .render-columns:not(.rc-side) { flex-direction: column !important; }
+  .render-columns:not(.rc-side) > * { width: 100% !important; flex: 1 1 auto !important; }
+  .render-columns.rc-side { flex-direction: row !important; flex-wrap: nowrap !important; }
+  .render-columns.rc-side > * { min-width: 0; }
+  .render-stats { grid-template-columns: 1fr 1fr !important; }
+}
+@container ravapage (max-width: 480px) {
+  .render-stats { grid-template-columns: 1fr !important; }
+}
+
+/* ============================================================
+   V122 — RAVA Audio Player (پلیر صوتی مشترک سایت + بیلدر)
+   ساختار: .rava-audio > audio[مخفی] + دکمهٔ پخش + نوار + زمان‌ها
+   پریست‌ها: rau--default (قرصیِ آرام) / rau--podcast (ویوفُرم) / rau--seminar (تیره)
+   ============================================================ */
+.rava-audio { direction: rtl; font-family: inherit; }
+.rava-audio .rau-play {
+  flex: none; border: none; border-radius: 999px; cursor: pointer;
+  display: grid; place-items: center; color: #fff; position: relative;
+  transition: transform .15s ease, filter .15s ease;
+}
+.rava-audio .rau-play:hover { transform: scale(1.05); filter: brightness(1.06); }
+.rava-audio .rau-play:active { transform: scale(.97); }
+.rava-audio .rau-ic { font-size: 15px; line-height: 1; display: none; }
+.rava-audio .rau-ic-play { display: block; margin-inline-start: 2px; }
+.rava-audio .rau-play.is-playing .rau-ic-play { display: none; }
+.rava-audio .rau-play.is-playing .rau-ic-pause { display: block; font-size: 13px; letter-spacing: 1px; }
+.rava-audio .rau-track {
+  flex: 1; height: 18px; display: flex; align-items: center; cursor: pointer;
+  min-width: 60px; touch-action: none;
+}
+.rava-audio .rau-track { position: relative; }
+.rava-audio .rau-track .rau-rail, .rava-audio .rau-fill {
+  height: 6px; border-radius: 999px; width: 100%;
+}
+.rava-audio .rau-fill { width: 0%; transition: width .1s linear; }
+.rava-audio .rau-track .rau-rail { background: rgba(16,24,40,.12); position: absolute; inset-inline: 0; }
+.rava-audio .rau-thumb {
+  position: absolute; top: 50%; inline-size: 14px; block-size: 14px;
+  border-radius: 999px; background: inherit; border: 2.5px solid #fff;
+  box-shadow: 0 2px 8px rgba(16,24,40,.3); transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+[dir="rtl"] .rava-audio .rau-thumb { transform: translate(50%, -50%); }
+.rava-audio .rau-time { font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; direction: ltr; }
+.rava-audio .rau-time--chip { padding: 4px 10px; border-radius: 999px; background: rgba(16,24,40,.06); font-size: 11px; }
+.rava-audio .rau-timerow { display: flex; align-items: center; gap: 10px; }
+.rava-audio .rau-cover {
+  flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+  color: #fff; font-size: 20px; box-shadow: 0 8px 20px rgba(16,24,40,.18);
+}
+.rava-audio .rau-cover--lg { width: 52px; height: 52px; border-radius: 16px; font-size: 24px; }
+.rava-audio .rau-wave { display: flex; align-items: center; justify-content: center; gap: 2.5px; height: 40px; cursor: pointer; }
+.rava-audio .rau-bar {
+  width: 3.5px; border-radius: 999px; background: currentColor; opacity: .85;
+  display: block; transition: opacity .2s ease, transform .2s ease;
+}
+.rava-audio.is-playing .rau-bar { animation: rauPulse 1.4s ease-in-out infinite; }
+.rava-audio .rau-bar:nth-child(2n) { animation-delay: .2s; }
+.rava-audio .rau-bar:nth-child(3n) { animation-delay: .45s; }
+.rava-audio .rau-bar:nth-child(5n) { animation-delay: .7s; }
+@keyframes rauPulse { 0%, 100% { transform: scaleY(.72); opacity: .55; } 50% { transform: scaleY(1.15); opacity: 1; } }
+.rava-audio .rau-skip {
+  border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 800;
+  padding: 6px 4px; letter-spacing: .02em;
+}
+.rava-audio .rau-skip:hover { opacity: .75; }
+/* پر شدن نوار در پریست قرصی: نوار داخل flex است، پس راست‌به‌چپ پر می‌شود */
+.rava-audio .rau-fill { background-clip: padding-box; }
+[dir="rtl"] .rava-audio .rau-fill,
+[dir="rtl"] .rava-audio .rau-track .rau-rail { }
+@media (prefers-reduced-motion: reduce) {
+  .rava-audio .rau-bar { animation: none !important; }
+  .rava-audio .rau-fill { transition: none !important; }
+}
+
+/* V129 — background pattern library: tiny previews used by the builder picker.
+   The .pat-prev--<id> classes are generated from the same PATTERNS table the
+   page canvas uses, so previews always match what the published page renders. */
+.pat-prev--grid-diamond{background-image:linear-gradient(45deg,rgba(127,86,217,.5) 1px,transparent 1px),linear-gradient(-45deg,rgba(127,86,217,.5) 1px,transparent 1px);background-size:8px 8px}
+.pat-prev--grid-square{background-image:linear-gradient(rgba(127,86,217,.55) 1px,transparent 1px),linear-gradient(90deg,rgba(127,86,217,.55) 1px,transparent 1px);background-size:8px 8px}
+.pat-prev--dot-grid{background-image:radial-gradient(rgba(127,86,217,.7) 1.2px,transparent 1.3px);background-size:7px 7px}
+.pat-prev--heartbeat{background-image:repeating-linear-gradient(90deg,rgba(127,86,217,.6) 0 1px,transparent 1px 4px);background-size:auto}
+.pat-prev--topography{background-image:repeating-radial-gradient(circle at 50% 120%,rgba(127,86,217,.45) 0 1px,transparent 1px 5px)}
+.pat-prev--circuit{background-image:linear-gradient(rgba(127,86,217,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(127,86,217,.5) 1px,transparent 1px);background-size:9px 9px}
+.pat-prev--glass{background:conic-gradient(from 210deg at 70% 30%,rgba(127,86,217,.4),transparent 32%,rgba(23,92,211,.3) 60%,transparent 80%),#0B1220}
+.pat-prev--aurora{background:radial-gradient(ellipse 45% 40% at 22% 18%,rgba(127,86,217,.7),transparent 70%),radial-gradient(ellipse 45% 40% at 80% 30%,rgba(23,92,211,.7),transparent 70%),radial-gradient(ellipse 45% 40% at 50% 85%,rgba(238,70,188,.6),transparent 70%),#0B1220}
+.pat-prev--spotlight{background:radial-gradient(ellipse 80% 55% at 50% -10%,rgba(255,255,255,.85),transparent 70%),#0B1220}
+
+/* ==========================================================================
+   V132 — انیمیشن عناصر (تب پیشرفته → کارت «انیمیشن»)
+   همهٔ @keyframes یک‌بار اینجا تعریف می‌شوند (نه به‌ازای هر عنصر). نام‌ها بر
+   اساس نوع انیمیشن‌اند؛ شدت/جهت با CSS variables (--rva-*) روی خود عنصر ست
+   می‌شود، پس یک مجموعهٔ keyframes برای هر سه پلهٔ Intensity کار می‌کند.
+   Runtime مشترک (RAVA_ANIMATION) کلاس rva-anim را روی عنصر می‌گذارد/برمی‌دارد.
+   ========================================================================== */
+@keyframes rvaFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes rvaFadeUp{from{opacity:0;transform:translateY(var(--rva-dist))}to{opacity:1;transform:translateY(0)}}
+@keyframes rvaFadeDown{from{opacity:0;transform:translateY(calc(-1 * var(--rva-dist)))}to{opacity:1;transform:translateY(0)}}
+@keyframes rvaFadeLeft{from{opacity:0;transform:translateX(var(--rva-dist))}to{opacity:1;transform:translateX(0)}}
+@keyframes rvaFadeRight{from{opacity:0;transform:translateX(calc(-1 * var(--rva-dist)))}to{opacity:1;transform:translateX(0)}}
+@keyframes rvaBlur1{from{opacity:.2;filter:blur(var(--rva-blur))}to{opacity:1;filter:blur(0)}}
+@keyframes rvaBlur2{0%{opacity:0;filter:blur(var(--rva-blur))}55%{opacity:1;filter:blur(calc(var(--rva-blur) / 2.2))}100%{opacity:1;filter:blur(0)}}
+@keyframes rvaGlitch1{0%{opacity:0;transform:translateX(0)}12%{opacity:1;transform:translateX(calc(var(--rva-glitch) * -1))}24%{transform:translateX(var(--rva-glitch))}36%{transform:translateX(calc(var(--rva-glitch) * -.55))}48%{transform:translateX(calc(var(--rva-glitch) * .4))}60%{transform:translateX(calc(var(--rva-glitch) * -.22))}72%{transform:translateX(calc(var(--rva-glitch) * .12))}84%{transform:translateX(0)}100%{opacity:1;transform:translateX(0)}}
+@keyframes rvaGlitch2{0%{opacity:0;transform:translateX(0);text-shadow:none}10%{opacity:1;transform:translateX(calc(var(--rva-glitch) * -1.4));text-shadow:calc(var(--rva-glitch) * -.6) 0 #FF2E63,calc(var(--rva-glitch) * .6) 0 #08D9D6}22%{transform:translateX(var(--rva-glitch))}34%{transform:translateX(calc(var(--rva-glitch) * -.7));text-shadow:calc(var(--rva-glitch) * .5) 0 #FF2E63,calc(var(--rva-glitch) * -.5) 0 #08D9D6}46%{transform:translateX(calc(var(--rva-glitch) * .5))}58%{transform:translateX(calc(var(--rva-glitch) * -.25));text-shadow:calc(var(--rva-glitch) * -.35) 0 #FF2E63,calc(var(--rva-glitch) * .35) 0 #08D9D6}70%{transform:translateX(calc(var(--rva-glitch) * .12));text-shadow:none}100%{opacity:1;transform:translateX(0);text-shadow:none}}
+@keyframes rvaBounceUp{0%{opacity:0;transform:translateY(calc(var(--rva-dist) * -1.6))}55%{opacity:1;transform:translateY(0)}72%{transform:translateY(calc(var(--rva-bounce) * -1))}86%{transform:translateY(calc(var(--rva-bounce) * .35))}100%{opacity:1;transform:translateY(0)}}
+@keyframes rvaBounceDown{0%{opacity:0;transform:translateY(calc(var(--rva-dist) * 1.6))}55%{opacity:1;transform:translateY(0)}72%{transform:translateY(var(--rva-bounce))}86%{transform:translateY(calc(var(--rva-bounce) * -.35))}100%{opacity:1;transform:translateY(0)}}
+@keyframes rvaBounceLeft{0%{opacity:0;transform:translateX(calc(var(--rva-dist) * -1.6))}55%{opacity:1;transform:translateX(0)}72%{transform:translateX(calc(var(--rva-bounce) * -1))}86%{transform:translateX(calc(var(--rva-bounce) * .35))}100%{opacity:1;transform:translateX(0)}}
+@keyframes rvaBounceRight{0%{opacity:0;transform:translateX(calc(var(--rva-dist) * 1.6))}55%{opacity:1;transform:translateX(0)}72%{transform:translateX(var(--rva-bounce))}86%{transform:translateX(calc(var(--rva-bounce) * -.35))}100%{opacity:1;transform:translateX(0)}}
+@keyframes rvaTiltLeft{from{opacity:0;transform:perspective(var(--rva-persp)) rotate(calc(var(--rva-deg) * -1)) translateY(var(--rva-dist))}to{opacity:1;transform:perspective(var(--rva-persp)) rotate(0) translateY(0)}}
+@keyframes rvaTiltRight{from{opacity:0;transform:perspective(var(--rva-persp)) rotate(var(--rva-deg)) translateY(var(--rva-dist))}to{opacity:1;transform:perspective(var(--rva-persp)) rotate(0) translateY(0)}}
+@keyframes rvaFlipForward{from{opacity:0;transform:perspective(var(--rva-persp)) rotateX(calc(var(--rva-deg) * -1))}to{opacity:1;transform:perspective(var(--rva-persp)) rotateX(0)}}
+@keyframes rvaFlipBackward{from{opacity:0;transform:perspective(var(--rva-persp)) rotateX(var(--rva-deg))}to{opacity:1;transform:perspective(var(--rva-persp)) rotateX(0)}}
+@keyframes rvaFlipLeft{from{opacity:0;transform:perspective(var(--rva-persp)) rotateY(var(--rva-deg))}to{opacity:1;transform:perspective(var(--rva-persp)) rotateY(0)}}
+@keyframes rvaFlipRight{from{opacity:0;transform:perspective(var(--rva-persp)) rotateY(calc(var(--rva-deg) * -1))}to{opacity:1;transform:perspective(var(--rva-persp)) rotateY(0)}}
+@keyframes rvaPopIn{0%{opacity:0;transform:scale(var(--rva-scale))}60%{opacity:1;transform:scale(1.045)}80%{transform:scale(.985)}100%{opacity:1;transform:scale(1)}}
+@keyframes rvaSlideLeft{from{transform:translateX(var(--rva-dist))}to{transform:translateX(0)}}
+@keyframes rvaSlideRight{from{transform:translateX(calc(-1 * var(--rva-dist)))}to{transform:translateX(0)}}
+@keyframes rvaWipeUp{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rvaWipeDown{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rvaWipeLeft{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rvaWipeRight{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rvaWipeDiag{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rvaWipeRevDiag{from{clip-path:inset(100% 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rvaZoomIn{from{opacity:0;transform:scale(var(--rva-scale))}to{opacity:1;transform:scale(1)}}
+@keyframes rvaZoomOut{from{opacity:0;transform:scale(calc(1 + (1 - var(--rva-scale)) * .9))}to{opacity:1;transform:scale(1)}}
+@keyframes rvaTypewriter{from{width:0}to{width:100%}}
+@keyframes rvaCaret{0%,45%{opacity:1}50%,95%{opacity:0}}
+@keyframes rvaWordReveal{from{opacity:0;transform:translateY(.55em);filter:blur(3px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+
+/* کلاس‌های اجرا: کلاسِ هر نوع، انیمیشن و متغیرهای مخصوص خودش را می‌گذارد.
+   مقادیر پیش‌فرض متغیرها = Intensity Normal؛ Runtime بر اساس intensity بازنویسی‌شان می‌کند. */
+.rva-pending{opacity:0}
+.rva-anim{animation-duration:var(--rva-dur,1s);animation-timing-function:cubic-bezier(.16,1,.3,1);backface-visibility:hidden;animation-delay:var(--rva-delay,0s);animation-fill-mode:both;will-change:opacity,transform}
+/* V132.1 — map هر کلاس نوع به keyframes مربوطه (یک‌بار در این فایل، نه per-element) */
+.rva-anim.rva-fadein{animation-name:rvaFadeIn}
+.rva-anim.rva-fadeup{animation-name:rvaFadeUp}
+.rva-anim.rva-fadedown{animation-name:rvaFadeDown}
+.rva-anim.rva-fadeleft{animation-name:rvaFadeLeft}
+.rva-anim.rva-faderight{animation-name:rvaFadeRight}
+.rva-anim.rva-blur1{animation-name:rvaBlur1}
+.rva-anim.rva-blur2{animation-name:rvaBlur2}
+.rva-anim.rva-glitch1{animation-name:rvaGlitch1}
+.rva-anim.rva-glitch2{animation-name:rvaGlitch2}
+.rva-anim.rva-bounceup{animation-name:rvaBounceUp}
+.rva-anim.rva-bouncedown{animation-name:rvaBounceDown}
+.rva-anim.rva-bounceleft{animation-name:rvaBounceLeft}
+.rva-anim.rva-bounceright{animation-name:rvaBounceRight}
+.rva-anim.rva-tiltleft{animation-name:rvaTiltLeft}
+.rva-anim.rva-tiltright{animation-name:rvaTiltRight}
+.rva-anim.rva-flipforward{animation-name:rvaFlipForward}
+.rva-anim.rva-flipbackward{animation-name:rvaFlipBackward}
+.rva-anim.rva-flipleft{animation-name:rvaFlipLeft}
+.rva-anim.rva-flipright{animation-name:rvaFlipRight}
+.rva-anim.rva-popin{animation-name:rvaPopIn}
+.rva-anim.rva-slideleft{animation-name:rvaSlideLeft}
+.rva-anim.rva-slideright{animation-name:rvaSlideRight}
+.rva-anim.rva-wipeup{animation-name:rvaWipeUp}
+.rva-anim.rva-wipedown{animation-name:rvaWipeDown}
+.rva-anim.rva-wipeleft{animation-name:rvaWipeLeft}
+.rva-anim.rva-wiperight{animation-name:rvaWipeRight}
+.rva-anim.rva-wipediag{animation-name:rvaWipeDiag}
+.rva-anim.rva-wiperevdiag{animation-name:rvaWipeRevDiag}
+.rva-anim.rva-zoomin{animation-name:rvaZoomIn}
+.rva-anim.rva-zoomout{animation-name:rvaZoomOut}
+.rva-anim.rva-typewriter .rva-type-text{animation-name:rvaTypewriter}
+.rva-anim.rva-wordreveal .rva-word{animation-name:rvaWordReveal}
+.rva-anim.rva-typewriter{animation-name:none}
+.rva-anim.rva-wordreveal{animation-name:none}
+.rva-typewriter .rva-type-text{overflow:hidden;display:inline-block;white-space:nowrap;vertical-align:bottom;animation:rvaTypewriter var(--rva-dur,1s) steps(32,end) var(--rva-delay,0s) both}
+.rva-typewriter .rva-type-text::after{content:'▌';color:currentColor;animation:rvaCaret .7s step-end infinite}
+.rva-wordreveal .rva-word{display:inline-block;animation:rvaWordReveal var(--rva-dur,1s) cubic-bezier(.22,.9,.28,1) both;animation-delay:calc(var(--rva-delay,0s) + var(--rva-wi) * (var(--rva-dur,1s) / 9))}
+
+/* Flip/Tilt: والدِ نزدیک یک perspective واقعی می‌خواهد تا به‌جای فلت، سه‌بعدی دیده شود */
+.rva-anim-perspective{perspective:900px}
+.rva-flip3d{transform-style:preserve-3d}
+
+@media (prefers-reduced-motion: reduce){
+  .rva-anim{animation-duration:.25s !important;animation-delay:0s !important}
+  .rva-anim.rva-glitch1,.rva-anim.rva-glitch2{animation-name:rvaFadeIn !important}
+  .rva-typewriter .rva-type-text{animation-duration:.3s !important;animation-delay:0s !important}
+  .rva-typewriter .rva-type-text::after{animation:none}
+  .rva-wordreveal .rva-word{animation-duration:.3s !important;animation-delay:0s !important}
+}
+.pat-prev--mesh-blob{background:radial-gradient(circle at 18% 25%,rgba(127,86,217,.55),transparent 55%),radial-gradient(circle at 80% 15%,rgba(23,92,211,.5),transparent 55%),radial-gradient(circle at 35% 80%,rgba(238,70,188,.45),transparent 55%),#0B1220}
+.pat-prev--grain{background:#0B1220}
+.pat-prev--stripes{background-image:repeating-linear-gradient(45deg,rgba(127,86,217,.55) 0 2px,transparent 2px 6px)}
+.pat-prev--paper{background:#EDE7DB;box-shadow:inset 0 0 8px rgba(120,105,80,.35)}
+.pat-prev--fabric{background-image:linear-gradient(rgba(139,125,107,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(139,125,107,.5) 1px,transparent 1px);background-size:5px 5px;background-color:#EFEAE2}
+
+/* ============================================================
+   V133 — هدر و فوتر سایت (عناصر «هدر» و «فوتر» بیلدر)
+   یک CSS برای هر سه محیط: سایت منتشرشده، بوم ویرایش و پیش‌نمایش بیلدر.
+   چیدمان با @container ravapage کنترل می‌شود؛ روی بوم موبایل، همان
+   رفتار موبایل سایت واقعی (منوی همبرگری/آکاردئون) دیده می‌شود.
+   ============================================================ */
+.rava-hdr{direction:inherit;font-family:inherit;transition:background-color .25s ease,box-shadow .25s ease,height .25s ease}
+.rava-hdr__inner{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;min-height:var(--hh,64px);max-width:1240px;margin:0 auto;padding:8px 18px}
+.rava-hdr__logo{display:inline-flex;align-items:center;text-decoration:none;color:inherit}
+.rava-hdr__nav{display:flex;align-items:center;gap:var(--hg,26px);flex-wrap:nowrap;min-width:0}
+.rava-hdr__nav:empty{display:none}
+.rava-hdr-link{color:var(--lk,inherit);text-decoration:none;font-size:var(--lks,14px);font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;transition:color .15s ease}
+.rava-hdr-link:hover{color:var(--lk-hover,var(--lk,#175CD3))}
+.rava-hdr-link[aria-current="page"]{color:var(--lk-active,var(--lk,#175CD3))}
+.rava-hdr-item{position:relative;display:inline-flex}
+.rava-hdr-ico-in{font-size:.9em;line-height:1}
+.rava-hdr-caret{font-size:.7em;line-height:1}
+/* زیرمنو (دسکتاپ) */
+.rava-hdr-item.has-sub{padding-block:6px}
+.rava-hdr-sub{position:absolute;top:100%;inset-inline-start:0;min-width:180px;display:none;flex-direction:column;padding:8px;background:#fff;border:1px solid #EAECF0;border-radius:12px;box-shadow:0 18px 44px rgba(16,24,40,.14);z-index:5}
+.rava-hdr-sub a{display:block;padding:8px 10px;border-radius:8px;color:#101828;text-decoration:none;font-size:13.5px;font-weight:600;white-space:nowrap}
+.rava-hdr-sub a:hover{background:#F2F4F7;color:#175CD3}
+.rava-hdr-item.has-sub:hover .rava-hdr-sub,.rava-hdr-item.has-sub:focus-within .rava-hdr-sub{display:flex}
+/* اسلات‌ها — چیدمان‌های آماده */
+.rava-hdr--start .rava-hdr__nav-slot{justify-content:flex-end}
+.rava-hdr--center .rava-hdr__inner{grid-template-columns:1fr auto 1fr}
+.rava-hdr--center .rava-hdr__logo-slot{order:2;justify-content:center}
+.rava-hdr--center .rava-hdr__nav-slot{order:1;justify-content:flex-end}
+.rava-hdr--center .rava-hdr__side-slot{order:3;justify-content:flex-start}
+.rava-hdr--end .rava-hdr__inner{grid-template-columns:1fr auto 1fr}
+.rava-hdr--end .rava-hdr__logo-slot{order:2;justify-content:center}
+.rava-hdr--end .rava-hdr__nav-slot{order:3;justify-content:flex-start}
+.rava-hdr--end .rava-hdr__side-slot{order:1;justify-content:flex-end}
+.rava-hdr--endnav .rava-hdr__inner{grid-template-columns:1fr 1fr auto}
+.rava-hdr--endnav .rava-hdr__logo-slot{order:3}
+.rava-hdr--endnav .rava-hdr__nav-slot{order:1;justify-content:flex-start}
+.rava-hdr--endnav .rava-hdr__side-slot{order:2}
+.rava-hdr--navonly .rava-hdr__inner{grid-template-columns:1fr}
+.rava-hdr--navonly .rava-hdr__logo-slot,.rava-hdr--navonly .rava-hdr__side-slot{display:none}
+.rava-hdr--navonly .rava-hdr__nav-slot{justify-content:center}
+.rava-hdr__side{display:flex;align-items:center;gap:10px}
+.rava-hdr-ico{display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:36px;padding:0 6px;border:none;border-radius:10px;background:transparent;color:inherit;font:inherit;font-size:17px;cursor:pointer;text-decoration:none;transition:background .15s ease}
+.rava-hdr-ico:hover{background:rgba(127,127,127,.14)}
+.rava-hdr-lang{font-size:12px;font-weight:800;letter-spacing:.02em}
+.rava-hdr-cta{display:inline-flex;align-items:center;padding:9px 18px;border-radius:12px;font-size:14px;font-weight:800;text-decoration:none;white-space:nowrap;transition:filter .15s ease,transform .15s ease}
+.rava-hdr-cta:hover{filter:brightness(1.07);transform:translateY(-1px)}
+/* همبرگر: فقط وقتی نویگیشن واقعا جا ندارد (کوئری کانتینر = عرض بوم/صفحه) */
+.rava-hdr__burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:40px;height:36px;padding:0 8px;border:none;border-radius:10px;background:transparent;color:inherit;cursor:pointer}
+.rava-hdr__burger span{display:block;height:2px;border-radius:2px;background:currentColor}
+.rava-hdr__burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.rava-hdr__burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.rava-hdr__burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+@container ravapage (max-width: 860px){
+  .rava-hdr .rava-hdr__nav-slot{display:none}
+  .rava-hdr .rava-hdr__burger{display:flex}
+  .rava-hdr__inner{grid-template-columns:auto 1fr auto}
+  .rava-hdr--center .rava-hdr__inner{grid-template-columns:auto 1fr auto}
+  .rava-hdr--center .rava-hdr__logo-slot{order:1;justify-content:flex-start}
+  .rava-hdr--center .rava-hdr__nav-slot{order:2}
+  .rava-hdr--center .rava-hdr__side-slot{order:3;justify-content:flex-end}
+  .rava-hdr--end .rava-hdr__inner{grid-template-columns:auto 1fr auto}
+  .rava-hdr--end .rava-hdr__logo-slot{order:1;justify-content:flex-start}
+  .rava-hdr--end .rava-hdr__side-slot{order:3;justify-content:flex-end}
+  .rava-hdr--navonly .rava-hdr__side-slot{display:flex}
+  .rava-hdr--navonly .rava-hdr__logo-slot{display:inline-flex}
+  .rava-hdr--navonly .rava-hdr__inner{grid-template-columns:auto 1fr auto}
+}
+/* کشوی منو */
+/* بسته = کاملاً بیرون از دید: LTR لنگر چپ → به چپ پنهان؛ RTL لنگر راست → به راست پنهان */
+.rava-hdr__drawer{position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(320px,86vw);z-index:calc(var(--hz,50) + 2);background:#fff;color:#101828;padding:14px;display:flex;flex-direction:column;gap:12px;transform:translateX(-110%);transition:transform .28s ease,visibility .28s ease;overflow-y:auto;visibility:hidden}
+.rava-hdr__drawer[data-mm="fullscreen"]{inset-inline-start:0;width:100vw;border-radius:0;justify-content:flex-start}
+[dir="rtl"] .rava-hdr__drawer{transform:translateX(110%)}
+.rava-hdr__drawer.is-open{transform:translateX(0) !important;visibility:visible}
+[dir="rtl"] .rava-hdr__drawer[data-mm="fullscreen"]{transform:translateX(110%)}
+/* fullscreen بسته هم کامل بیرون از دید */
+.rava-hdr__drawer[data-mm="fullscreen"]{width:100vw}
+.rava-hdr__drawer.is-open{transform:translateX(0) !important;visibility:visible}
+.rava-hdr-drawer__head{display:flex;align-items:center;justify-content:space-between;font-weight:900}
+.rava-hdr-drawer__close{border:none;background:transparent;color:inherit;font-size:24px;line-height:1;cursor:pointer;padding:4px 8px;border-radius:8px}
+.rava-hdr-drawer__nav{display:flex;flex-direction:column;gap:4px}
+.rava-hdr-drawer__nav a{display:block;padding:12px 10px;border-radius:10px;color:#101828;text-decoration:none;font-size:15px;font-weight:700}
+.rava-hdr-drawer__nav a:hover{background:#F2F4F7;color:#175CD3}
+.rava-hdr-drawer__cta{display:block;text-align:center;padding:13px;border-radius:12px;font-weight:800;text-decoration:none;font-size:15px}
+.rava-hdr__scrim{position:fixed;inset:0;z-index:calc(var(--hz,50) + 1);background:rgba(11,18,32,.44);backdrop-filter:blur(2px)}
+.rava-hdr__scrim[hidden]{display:none}
+/* آکاردئونی */
+.rava-hdr__acc{display:none}
+.rava-hdr__scrim.rava-hdr__scrim--acc{z-index:calc(var(--hz,50) + 1);position:fixed;top:var(--sh,64px);inset-inline:0;bottom:0;background:rgba(11,18,32,.44)}
+@container ravapage (max-width: 860px){
+  .rava-hdr[data-mm="accordion"] .rava-hdr__acc{display:grid;gap:2px;position:absolute;top:100%;inset-inline:0;background:#fff;color:#101828;padding:10px 16px 14px;border-bottom:1px solid #EAECF0;box-shadow:0 24px 50px rgba(16,24,40,.16);max-height:70vh;overflow-y:auto}
+  .rava-hdr__acc[hidden]{display:none !important}
+  .rava-hdr[data-mm="accordion"] .rava-hdr__acc[hidden]{display:none !important}
+}
+.rava-hdr-acc__link,.rava-hdr-acc__toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;padding:12px 8px;border:none;background:transparent;color:#101828;text-decoration:none;font:inherit;font-size:15px;font-weight:700;border-bottom:1px solid #F2F4F7;cursor:pointer;text-align:start}
+.rava-hdr-acc__sub{display:grid;gap:2px;padding:2px 0 8px}
+.rava-hdr-acc__sub a{padding:9px 12px;border-radius:8px;color:#475467;text-decoration:none;font-size:14px;font-weight:600}
+.rava-hdr-acc__sub a:hover{background:#F2F4F7;color:#175CD3}
+/* جستجو */
+.rava-hdr-search{display:flex;gap:8px;padding:10px 18px;border-top:1px solid rgba(127,127,127,.16)}
+.rava-hdr-search[hidden]{display:none}
+.rava-hdr-search input{flex:1;min-width:0;padding:10px 14px;border:1px solid #D0D5DD;border-radius:10px;font:inherit;font-size:14px}
+.rava-hdr-search button{border:none;border-radius:10px;background:#175CD3;color:#fff;font:inherit;font-size:13px;font-weight:800;padding:0 16px;cursor:pointer}
+/* حالت‌های اسکرول */
+.rava-hdr.is-scrolled{box-shadow:0 8px 28px rgba(16,24,40,.10)}
+.rava-hdr.is-hidden-up{transform:translateY(-105%) !important;transition:transform .3s ease}
+.rava-hdr.is-glassed{-webkit-backdrop-filter:blur(var(--gb,10px)) !important;backdrop-filter:blur(var(--gb,10px)) !important;background-color:rgba(255,255,255,.72) !important}
+.rava-hdr.is-shrunk .rava-hdr__inner{min-height:calc(var(--hh,64px) * .68);padding-block:4px}
+.rava-hdr.is-shrunk img{height:calc(var(--lhi,27px) * .78) !important}
+.rava-hdr[data-rava-fixed="1"]{position:fixed;top:0;left:0;right:0}
+/* در ادیتور/پیش‌نمایش بیلدر: drawer و scrim مطلق نسبت به خود هدر می‌مانند تا
+   position:fixed کل صفحهٔ بیلدر را نپوشاند */
+.rava-hdr--editctx .rava-hdr__drawer{position:absolute;top:100%;bottom:auto;height:auto;max-height:70vh}
+.rava-hdr--editctx .rava-hdr__drawer[data-mm="fullscreen"]{width:100%}
+.rava-hdr--editctx .rava-hdr__scrim{display:none}
+.rava-hdr--editctx .rava-hdr-search{position:absolute;top:100%;inset-inline:0;background:inherit;z-index:3}
+/* V134 — آیتم سفارشی هدر (عکس + لینک) */
+.rava-hdr-custom{display:inline-flex;align-items:center;text-decoration:none}
+.rava-hdr-custom img{transition:transform .15s ease}
+.rava-hdr-custom:hover img{transform:scale(1.05)}
+/* ---- فوتر ---- */
+.rava-ftr{direction:inherit;font-family:inherit}
+.rava-ftr__inner{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.rava-ftr__top{display:flex;justify-content:space-between;align-items:flex-start;gap:26px;flex-wrap:wrap}
+.rava-ftr__brand{display:flex;flex-direction:column;align-items:flex-start}
+.rava-ftr__grid{display:grid;gap:24px 18px}
+.rava-ftr__gtitle{font-weight:800;font-size:14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rava-ftr__glinks{display:flex;flex-direction:column;gap:9px}
+.rava-ftr__glinks a,.rava-ftr__bottom-links a{color:var(--lk,#CBD5E1);text-decoration:none;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;transition:color .15s ease}
+.rava-ftr__glinks a::before,.rava-ftr__bottom-links a::before{content:attr(data-ico);font-size:12px}
+.rava-ftr__glinks a::before,.rava-ftr__bottom-links a::before{content:none}
+.rava-ftr__glinks a[data-ico]::before,.rava-ftr__bottom-links a[data-ico]::before{content:attr(data-ico)}
+.rava-ftr__glinks a:hover,.rava-ftr__bottom-links a:hover{color:var(--lk-hover,#fff)}
+.rava-ftr__social{display:flex;gap:10px;flex-wrap:wrap}
+.rava-ftr__social a{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.08);color:inherit;text-decoration:none;transition:background .15s ease,transform .15s ease}
+.rava-ftr__social a:hover{background:rgba(255,255,255,.18);transform:translateY(-2px)}
+.rava-ftr__news{min-width:240px;max-width:360px;flex:1}
+.rava-ftr__news-label{font-weight:800;font-size:14px;margin-bottom:10px}
+.rava-ftr__news-form{display:flex;gap:8px}
+.rava-ftr__news-form input{flex:1;min-width:0;padding:11px 14px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:inherit;border-radius:10px;font:inherit;font-size:13.5px}
+.rava-ftr__news-form input::placeholder{color:rgba(255,255,255,.45)}
+.rava-ftr__news-form button{border:none;border-radius:10px;background:rgba(255,255,255,.92);color:#101828;font:inherit;font-size:13.5px;font-weight:800;padding:0 18px;cursor:pointer;transition:filter .15s ease}
+.rava-ftr__news-form button:hover{filter:brightness(.96)}
+.rava-ftr__news-form.is-ok input{border-color:#12B76A}
+.rava-ftr__news-form.is-ok button{background:#12B76A;color:#fff}
+.rava-ftr__news-form.is-ok button::after{content:' ✓'}
+.rava-ftr__bottom{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.rava-ftr__bottom-links{display:flex;gap:18px;flex-wrap:wrap}
+.rava-ftr__copy{font-size:12.5px}
+/* آکاردئون گروه‌ها روی موبایل (کوئری کانتینر = عرض بوم/صفحه) */
+@container ravapage (max-width: 720px){
+  .rava-ftr--acc .rava-ftr__grid{grid-template-columns:1fr !important}
+  .rava-ftr--acc .rava-ftr__gtitle--btn{width:100%;padding:10px 2px;border:none;background:transparent;color:inherit;font:inherit;font-size:14px;font-weight:800;cursor:pointer;border-bottom:1px solid rgba(127,127,127,.18)}
+  .rava-ftr--acc .rava-ftr__glinks{padding:8px 2px 4px}
+  .rava-ftr--acc .rava-ftr__gtitle--btn[aria-expanded="false"] + .rava-ftr__glinks{display:none}
+  .rava-ftr--acc .rava-ftr__caret{display:inline-block;transition:transform .2s ease}
+  .rava-ftr--acc .rava-ftr__gtitle--btn[aria-expanded="true"] .rava-ftr__caret{transform:rotate(180deg)}
+  .rava-ftr__bottom{flex-direction:column;align-items:flex-start}
+}
+.rava-ftr .rava-ftr__gtitle--btn .rava-ftr__caret{display:none}
+@container ravapage (max-width: 720px){
+  .rava-ftr--acc .rava-ftr__gtitle--btn .rava-ftr__caret{display:inline-block}
+}
+
+/* V134 — Fix 1: لینک‌های فوتر در دسکتاپ مخفی نمانند. رندرر وقتی آکاردئون موبایل
+   روشن است، لیست لینک‌های گروه را با attribute hidden رندر می‌کند (مکانیزم باز/بسته).
+   قانون آکاردئون فقط داخل container موبایل معتبر است؛ بیرون از آن (دسکتاپ/تبلت) هر
+   .rava-ftr__glinks باید همیشه دیده شود — وگرنه روی PC فقط تیتر گروه‌ها می‌ماند. */
+@container ravapage (min-width: 721px){
+  .rava-ftr--acc .rava-ftr__glinks[hidden]{ display: flex !important; }
+  .rava-ftr--acc .rava-ftr__gtitle--btn{ cursor: default; }
+  .rava-ftr--acc .rava-ftr__gtitle--btn .rava-ftr__caret{ display: none !important; }
+}
+/* گارد اضافه: هیچ‌وقت لینک‌های فوتر نباید بیرون از container موبایل hidden بمانند */
+@media (min-width: 721px){
+  .rava-ftr .rava-ftr__glinks[hidden]{ display: flex !important; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .rava-hdr,.rava-hdr__drawer,.rava-ftr{transition:none !important}
+  .rava-hdr.is-hidden-up{transform:none !important}
+}
+
+/* ============================================================
+   V134 — هدر/فوتر عنصری = تمام‌عرض واقعی صفحه
+   عناصر شل داخل ستون محتوا (public-container / landing-content) رندر می‌شوند؛
+   این قوانین همان تکنیک 100cqw سکشن‌های fullbleed را روی خودشان اعمال می‌کند
+   تا از هر ستونی بیرون بزنند و لبه‌به‌لبهٔ صفحه بنشینند. روی بوم بیلدر هم
+   (container ravapage = عرض بوم) همان رفتار را می‌بینند.
+   ============================================================ */
+.rava-hdr, .rava-ftr {
+  width: 100cqw;
+  max-width: 100cqw;
+  margin-inline: calc(50% - 50cqw);
+}
+/* اسکرول‌بار را هدر/فوتر هویج نکنند؛ رفتار sticky/fixed دست‌نخورده می‌ماند */
+.rava-hdr[data-sticky="fixed"], .rava-hdr[data-sticky="smart"] { margin-inline: 0; }
+/* در ادیتور بیلدر عنصر داخل کارت/قاب انتخاب است — full-bleed آنجا معنا ندارد */
+.rava-hdr--editctx, .rava-ftr.rava-hdr--editctx { width: 100%; max-width: 100%; margin-inline: 0; }
+
+/* V158 — element-level font: form controls and summaries do not inherit
+   font-family by default, so they would ignore the element font. */
+.rv-font button,.rv-font input,.rv-font select,.rv-font textarea,.rv-font summary,.rv-font .render-button{font-family:inherit}
+
+/* ===================== V250 — Text / Button / Image / Columns ===================== */
+/* Text: paragraphs inside a Text block get the SAME rhythm on the site, the canvas
+   and inside the inspector editor (browser default 1em margins used to add hidden
+   space above/below every text block, even with margin 0). */
+.rv-text > p, .rv-text > div { margin: 0; }
+.rv-text > p:last-child, .rv-text > div:last-child { margin-bottom: 0; }
+.rv-text .rv-p { display: block; }
+.rv-text .rv-p + .rv-p { margin-top: 0; }
+.rv-text ul, .rv-text ol { margin: 0 0 .5em; padding-inline-start: 1.4em; }
+.rv-text ul:last-child, .rv-text ol:last-child { margin-bottom: 0; }
+.rv-text li { margin: .15em 0; }
+.rv-text ul { list-style: disc; }
+.rv-text ol { list-style: decimal; }
+.rv-text a { color: inherit; text-decoration: underline; text-underline-offset: .18em; }
+.rv-text-empty { color: #98A2B3; font-style: italic; font-size: 13px; }
+
+/* Button: smooth default feedback (per-element hover FX still wins with !important) */
+.render-button { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, filter .18s ease, background-color .18s ease, color .18s ease; gap: .5em; box-sizing: border-box; }
+.render-button:hover { filter: brightness(1.06); }
+.render-button:active { transform: translateY(1px); }
+.render-button:focus-visible { outline: 3px solid rgba(23, 92, 211, .35); outline-offset: 2px; }
+.render-button.rv-btn--nolink { cursor: default; }
+.render-button.rv-btn--nolink:hover { filter: none; }
+.render-button.rv-btn--nolink:active { transform: none; }
+.render-button.rv-btn--full { width: 100%; }
+.rv-btn-ico { display: inline-flex; line-height: 1; }
+@container ravapage (max-width: 720px) {
+  .render-button.rv-btn--mfull { width: 100% !important; }
+  .render-columns.rc-rev:not(.rc-side) { flex-direction: column-reverse !important; }
+}
+
+/* Image: hover zoom + link */
+.rv-img-zoom .render-img { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+.rv-img-zoom:hover .render-img { transform: scale(1.06); }
+.rv-img-link { cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .rv-img-zoom .render-img, .render-button { transition: none; } }

@@ -1,0 +1,367 @@
+/* ==========================================================================
+   RAVA V90 — Public site refresh
+   A refinement layer over styles.css for the customer-facing pages. It builds
+   on the design-system variables that shell() injects (--brand-primary,
+   --text, --surface, --content-max, --radius-*, ...) so everything here still
+   follows whatever is configured in Admin → Design.
+   ========================================================================== */
+
+:root {
+  --v90-ease: cubic-bezier(.4, 0, .2, 1);
+  --v90-ring: 0 0 0 3px color-mix(in srgb, var(--brand-primary, #175CD3) 26%, transparent);
+  --v90-lift: 0 18px 46px rgba(16, 24, 40, .10);
+  --v90-hairline: color-mix(in srgb, var(--border, #EAECF0) 82%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   1. Typography — fluid scale so headings stop overflowing on small screens
+   -------------------------------------------------------------------------- */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.public-hero h1 { font-size: clamp(34px, 6.2vw, 68px); line-height: 1.08; letter-spacing: -.02em; }
+.public-page h1, .public-article h1 { font-size: clamp(30px, 4.6vw, 50px); line-height: 1.15; letter-spacing: -.018em; }
+.public-section h2, .public-container h2 { font-size: clamp(25px, 3.2vw, 38px); line-height: 1.22; letter-spacing: -.014em; }
+.public-lead { font-size: clamp(15px, 1.6vw, 18.5px); line-height: 1.9; color: var(--muted, #667085); max-width: 68ch; }
+
+.eyebrow {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brand-primary, #175CD3);
+}
+
+.public-article p { max-width: 72ch; }
+.public-article :is(h2, h3) { scroll-margin-top: 90px; }
+
+/* Long product slugs and URLs should wrap rather than push the layout wide. */
+.public-card__body h3, .public-card__body p, .public-article a { overflow-wrap: anywhere; }
+
+/* --------------------------------------------------------------------------
+   2. Navigation
+   -------------------------------------------------------------------------- */
+.site-nav {
+  background: color-mix(in srgb, var(--header-bg, #fff) 86%, transparent);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border-bottom: 1px solid var(--v90-hairline);
+  transition: box-shadow .2s var(--v90-ease), background .2s var(--v90-ease);
+}
+.site-nav--scrolled { box-shadow: 0 4px 22px rgba(16, 24, 40, .07); }
+.site-nav__inner { max-width: var(--content-max, 1180px); gap: 20px; }
+.site-nav nav a {
+  position: relative;
+  padding: 7px 2px;
+  font-weight: 600;
+  color: var(--muted, #667085);
+  transition: color .16s var(--v90-ease);
+}
+.site-nav nav a::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand-primary, #175CD3);
+  transform: scaleX(0);
+  transition: transform .18s var(--v90-ease);
+}
+.site-nav nav a:hover { color: var(--text, #101828); }
+.site-nav nav a:hover::after, .site-nav nav a[aria-current="page"]::after { transform: scaleX(1); }
+.nav-cta { box-shadow: 0 6px 18px color-mix(in srgb, var(--brand-primary, #175CD3) 24%, transparent); }
+
+/* Skip link for keyboard users — it was missing entirely. */
+.v90-skip {
+  position: absolute;
+  inset-inline-start: 12px;
+  top: -60px;
+  z-index: 999;
+  background: var(--brand-primary, #175CD3);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  transition: top .18s var(--v90-ease);
+}
+.v90-skip:focus { top: 12px; }
+
+/* --------------------------------------------------------------------------
+   3. Buttons
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  line-height: 1;
+  min-height: 44px;
+  border-radius: var(--button-radius, 12px);
+  transition: transform .14s var(--v90-ease), box-shadow .18s var(--v90-ease), filter .16s var(--v90-ease);
+  cursor: pointer;
+  text-align: center;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn--primary:hover { filter: brightness(1.05); box-shadow: 0 10px 26px color-mix(in srgb, var(--brand-primary, #175CD3) 30%, transparent); }
+.btn--secondary { border: 1px solid var(--border, #EAECF0); }
+.btn--secondary:hover { border-color: color-mix(in srgb, var(--brand-primary, #175CD3) 40%, transparent); color: var(--brand-primary, #175CD3); }
+.btn--ghost:hover { background: color-mix(in srgb, var(--brand-primary, #175CD3) 8%, transparent); }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+.btn--xl { min-height: 54px; font-size: 16px; }
+.btn--compact, .btn--tiny { min-height: 38px; }
+
+/* --------------------------------------------------------------------------
+   4. Cards & grids
+   -------------------------------------------------------------------------- */
+.public-grid, .blog-grid { gap: 20px; }
+.public-card {
+  border-radius: var(--radius-lg, 20px);
+  overflow: hidden;
+  border: 1px solid var(--v90-hairline);
+  background: var(--surface, #fff);
+  transition: transform .2s var(--v90-ease), box-shadow .22s var(--v90-ease), border-color .2s var(--v90-ease);
+  display: flex;
+  flex-direction: column;
+}
+.public-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--v90-lift);
+  border-color: color-mix(in srgb, var(--brand-primary, #175CD3) 26%, transparent);
+}
+.public-card__cover { position: relative; overflow: hidden; }
+.public-card__cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, .28));
+  pointer-events: none;
+}
+.public-card__cover > * { position: relative; z-index: 1; }
+.public-card__body { padding: 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.public-card__body h3 { font-size: 18px; line-height: 1.45; letter-spacing: -.01em; }
+.public-card__body p { font-size: 13.5px; line-height: 1.85; color: var(--muted, #667085); }
+.card-chip {
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  padding: 4px 9px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--brand-primary, #175CD3) 11%, transparent);
+  color: var(--brand-primary, #175CD3);
+}
+
+/* Empty states shouldn't look like a rendering failure. */
+.empty-state, .v71-empty {
+  border: 1px dashed var(--border, #EAECF0);
+  border-radius: var(--radius-lg, 20px);
+  background: var(--surface-alt, #F8FAFC);
+}
+
+/* --------------------------------------------------------------------------
+   5. Forms (checkout, auth, account)
+   -------------------------------------------------------------------------- */
+.auth-card, .checkout-main, .success-card, .buy-card {
+  border-radius: var(--radius-xl, 24px);
+  border: 1px solid var(--v90-hairline);
+  background: var(--surface, #fff);
+}
+.auth-page label, .checkout-page label { display: block; margin-top: 14px; font-size: 12.5px; font-weight: 600; color: var(--muted, #667085); }
+.admin-input, .auth-page input, .checkout-page input, .checkout-page select {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  min-height: 46px;
+  border: 1px solid var(--border, #EAECF0);
+  border-radius: var(--radius-sm, 10px);
+  background: var(--surface-alt, #F8FAFC);
+  padding: 11px 13px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text, #101828);
+  transition: border-color .15s var(--v90-ease), box-shadow .15s var(--v90-ease), background .15s var(--v90-ease);
+}
+.admin-input:hover { border-color: color-mix(in srgb, var(--text, #101828) 22%, transparent); }
+.admin-input:focus, .auth-page input:focus, .checkout-page input:focus, .checkout-page select:focus {
+  outline: 0;
+  border-color: var(--brand-primary, #175CD3);
+  background: var(--surface, #fff);
+  box-shadow: var(--v90-ring);
+}
+.admin-input[disabled] { opacity: .6; cursor: not-allowed; }
+.auth-error:not(:empty) {
+  margin-top: 12px;
+  padding: 10px 13px;
+  border-radius: 10px;
+  background: #FEF3F2;
+  color: #B42318;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   6. Footer
+   -------------------------------------------------------------------------- */
+.site-footer__inner { max-width: var(--content-max, 1180px); }
+.site-footer a { transition: color .15s var(--v90-ease); }
+.site-footer a:hover { color: #fff; }
+
+/* --------------------------------------------------------------------------
+   7. 404
+   -------------------------------------------------------------------------- */
+.v90-notfound { text-align: center; display: grid; justify-items: center; gap: 10px; padding-block: clamp(60px, 12vh, 120px); }
+.v90-notfound__code {
+  font-size: clamp(88px, 18vw, 170px);
+  font-weight: 900;
+  line-height: .9;
+  letter-spacing: -.05em;
+  background: linear-gradient(140deg, var(--brand-primary, #175CD3), var(--brand-accent, #7F56D9));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 4px 0 6px;
+}
+.v90-notfound__actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 22px; }
+
+/* --------------------------------------------------------------------------
+   8. Accessibility & motion
+   -------------------------------------------------------------------------- */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--brand-primary, #175CD3);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+img, video { max-width: 100%; height: auto; }
+img[loading="lazy"] { background: var(--surface-alt, #F8FAFC); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn:hover, .public-card:hover { transform: none; }
+  /* V103: marquees ARE the content — keep them readable; the pause-on-hover
+     interaction still lets motion-sensitive users freeze them. */
+  .rava-marquee__track {
+    animation-duration: var(--mq-dur, 14s) !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. Small screens
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
+  .public-grid, .blog-grid { gap: 14px; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions .btn { width: 100%; }
+  .v90-notfound__actions .btn { width: 100%; }
+  .checkout-wrap { grid-template-columns: 1fr !important; }
+  .site-footer__inner { grid-template-columns: 1fr !important; gap: 30px; }
+}
+
+/* --------------------------------------------------------------------------
+   10. Print — invoices and order pages get printed
+   -------------------------------------------------------------------------- */
+@media print {
+  .site-nav, .site-footer, .mobile-buybar-v61, .btn, .nav-actions { display: none !important; }
+  body { background: #fff; color: #000; }
+  .public-article, .public-page { padding: 0; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 11px; color: #555; }
+}
+
+/* V134 — فاصلهٔ «Legal — Terms & Conditions» در فوتر قدیمی: b و a نباید چسبیده باشند */
+.footer-legal-v117 b { margin-inline-end: 10px; }
+
+/* ==========================================================================
+   V91 — Real full bleed on the live site
+   ==========================================================================
+   The page body is the query container every full-bleed block measures itself
+   against. That makes `100cqw` the true page width, so a section escapes the
+   landing gutter, the article column and any nested section in one step — and
+   unlike the old `100vw` it excludes the scrollbar, which used to add a
+   horizontal scrollbar to every page containing a full-bleed section. */
+body {
+  container-type: inline-size;
+  container-name: ravapage;
+  overflow-x: clip;
+}
+
+.rava-bleed,
+.render-section--fullbleed {
+  width: 100%;
+  max-width: none;
+  width: 100cqw;
+  max-width: 100cqw;
+  margin-inline: calc(50% - 50cqw);
+  border-radius: 0 !important;
+  box-sizing: border-box;
+}
+
+/* A bleeding block must not be clipped or re-inset by the column it lives in. */
+.landing-content-v61, .article-content-v62, .home-builder-blocks > article,
+.landing-body--v61, .public-landing { overflow: visible; }
+
+/* V134 — هدر/فوتر عنصری بیلدر full-bleed می‌شوند (همان تکنیک 100cqw سکشن‌ها)؛
+   فاصله‌گذاری افقی داخل خود شل با پدینگ ادیتور کنترل می‌شود، نه با ستون محتوا. */
+.landing-content-v61 > .rava-hdr, .landing-content-v61 > .rava-ftr,
+.rava-root-gap > .rava-hdr, .rava-root-gap > .rava-ftr,
+.home-builder-blocks .rava-hdr, .home-builder-blocks .rava-ftr,
+.article-content-v62 > .rava-hdr, .article-content-v62 > .rava-ftr {
+  width: 100cqw;
+  max-width: 100cqw;
+  margin-inline: calc(50% - 50cqw);
+}
+@media (max-width: 720px) {
+  .landing-content-v61 > .rava-hdr, .landing-content-v61 > .rava-ftr,
+  .rava-root-gap > .rava-hdr, .rava-root-gap > .rava-ftr,
+  .home-builder-blocks .rava-hdr, .home-builder-blocks .rava-ftr,
+  .article-content-v62 > .rava-hdr, .article-content-v62 > .rava-ftr {
+    width: 100cqw;
+    max-width: 100cqw;
+    margin-inline: calc(50% - 50cqw);
+  }
+}
+
+/* Backgrounds are the whole point of full bleed: the section should read as a
+   change of page colour, not as a rectangle sitting on the page. */
+.render-section--fullbleed > div,
+.rava-bleed > .render-section { border-radius: 0 !important; }
+
+/* On phones a full-bleed section still has to touch both edges, so the page
+   gutter is cancelled for it rather than merely reduced. */
+@media (max-width: 720px) {
+  .rava-bleed, .render-section--fullbleed {
+    width: 100cqw;
+    max-width: 100cqw;
+    margin-inline: calc(50% - 50cqw);
+  }
+}
+
+@keyframes rava-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Stacking for the widgets that only got a public renderer in V91. */
+@media (max-width: 720px) {
+  /* V139 — ستون‌های «کنار هم در موبایل» (rc-side) مستثنا هستند */
+  .render-columns:not(.rc-side) { flex-direction: column !important; }
+  .render-columns:not(.rc-side) > * { width: 100% !important; flex: 1 1 auto !important; }
+}
+
+/* V147 — one page gutter: the landing <main> already pads by landing.pageGutter,
+   so the inner container must not add a second gutter (the builder canvas
+   mirrors exactly one). Edge-to-edge blocks read the gutter via --rv-pl/--rv-pr. */
+.public-landing--v61 > .landing-body--v61{padding-left:0!important;padding-right:0!important}
+.public-container{--rv-pl:var(--page-gutter,0px);--rv-pr:var(--page-gutter,0px)}
+.public-landing--v61 > .landing-body--v61{--rv-pl:inherit;--rv-pr:inherit}
