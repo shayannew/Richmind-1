@@ -1,0 +1,20 @@
+-- RAVA V77 — Affiliate commission engine and refund rules
+ALTER TABLE orders ADD COLUMN commission_base_amount REAL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN commission_rule_id TEXT;
+ALTER TABLE orders ADD COLUMN commission_rule_model TEXT;
+ALTER TABLE orders ADD COLUMN refunded_amount REAL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN commission_reversed_amount REAL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN commission_reversed_at TEXT;
+ALTER TABLE commissions ADD COLUMN original_amount REAL DEFAULT 0;
+ALTER TABLE commissions ADD COLUMN base_amount REAL DEFAULT 0;
+ALTER TABLE commissions ADD COLUMN rate REAL DEFAULT 0;
+ALTER TABLE commissions ADD COLUMN model TEXT DEFAULT 'percentage';
+ALTER TABLE commissions ADD COLUMN rule_id TEXT;
+ALTER TABLE commissions ADD COLUMN rule_snapshot_json TEXT DEFAULT '{}';
+ALTER TABLE commissions ADD COLUMN hold_until TEXT;
+ALTER TABLE commissions ADD COLUMN reversed_amount REAL DEFAULT 0;
+ALTER TABLE commissions ADD COLUMN paid_amount REAL DEFAULT 0;
+ALTER TABLE commissions ADD COLUMN clawback_amount REAL DEFAULT 0;
+ALTER TABLE commissions ADD COLUMN reason TEXT;
+CREATE INDEX IF NOT EXISTS idx_commissions_affiliate_status_hold ON commissions(affiliate_id,status,hold_until,created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_refunded_affiliate ON orders(affiliate_id,refunded_amount,status,updated_at);
