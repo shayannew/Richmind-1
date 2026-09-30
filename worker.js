@@ -363,6 +363,7 @@ async function adminSetup(req,env){
 async function route(req,env,ctx){
   const url=new URL(req.url); const path=url.pathname; const m=req.method;
   if(path==='/healthz') return json({ok:true});
+  if(path==='/terms' || path==='/terms/') return env.ASSETS.fetch(new Request(new URL('/terms/',url),req));
   // Old paths from the previous build that must never be public.
   if(/^\/(admin(?!\/setup$)|api\/)/.test(path)) return new Response('Not found',{status:404});
 
