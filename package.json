@@ -1,24 +1,8 @@
 {
-  "name": "rava-edu-store",
-  "version": "250.0.0",
+  "name": "richmind-store",
+  "version": "1.0.0",
   "private": true,
-  "description": "RAVA - affiliate + digital products storefront with admin, builder, and Cloudflare Workers deployment.",
   "main": "worker.js",
-  "engines": {
-    "node": ">=18"
-  },
-  "scripts": {
-    "dev": "node server.js",
-    "build": "node scripts/build-cloudflare.js",
-    "deploy": "wrangler deploy --config wrangler.production.jsonc",
-    "deploy:staging": "wrangler deploy",
-    "wrangler:dev": "wrangler dev",
-    "check": "node --check server.js && node --check worker.js && node scripts/production-check.js",
-    "doctor": "node scripts/production-doctor.js",
-    "seed:d1": "node scripts/seed-d1.js",
-    "e2e": "node scripts/v90-e2e.js"
-  },
-  "devDependencies": {
-   "wrangler": "^4.0.0"
-  }
+  "scripts": { "deploy": "wrangler deploy" },
+  "devDependencies": { "wrangler": "^4.0.0" }
 }

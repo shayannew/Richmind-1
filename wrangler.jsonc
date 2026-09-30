@@ -4,13 +4,20 @@
   "main": "worker.js",
   "compatibility_date": "2026-09-16",
   "workers_dev": true,
-  "preview_urls": true,
+  "preview_urls": false,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": [
-      "/healthz",
-      "/products/*"
-    ]
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "richmind-db", "database_id": "4ba0600e-a74f-4594-bb6f-2cc8b6cf1e53" }
+  ],
+  "vars": {
+    "SITE_NAME": "RichMind",
+    "PUBLIC_BASE_URL": "https://richmind-1.shayannew0209.workers.dev",
+    "GOOGLE_CLIENT_ID": "59225715425-6mvrp46hc1s3nuj5fi81t92gqs2oj8mk.apps.googleusercontent.com",
+    "PAYMENT_MODE": "test",
+    "SUPPORT_EMAIL": ""
   }
 }
